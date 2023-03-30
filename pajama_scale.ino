@@ -18,8 +18,8 @@ void loop()
 {
   Panel.receive(); // handle panel events form the panel (must be in the loop)
 
-  Weight = ((float)hx711.read() / 1000.0) - Tare;
-  Panel.sendf(Display_1,"%s", _FString(Weight,1,0));
+  Weight = ((float)hx711.read() / 1000.0);
+  Panel.sendf(Display_1,"%s", _FString(Weight - Tare,1,0));
   delay(500);
 }
 
