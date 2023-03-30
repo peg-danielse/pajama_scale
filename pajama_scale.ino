@@ -6,21 +6,23 @@ const byte hx711_clock_pin = A3;
 
 Q2HX711 hx711(hx711_data_pin, hx711_clock_pin);
 
-float Weight = 0.0;
-float Tare = 0.0;
+float Weight = 0;
+float Tare = 0;
 
 void setup() 
 {
   Panel.begin(); // init port and protocol
+  Weight = hx711.read();
+  Tare = Weight;
 }
 
 void loop() 
 {
   Panel.receive(); // handle panel events form the panel (must be in the loop)
-
-  Weight = ((float)hx711.read() / 1000.0);
-  Panel.sendf(Display_1,"%s", _FString(Weight - Tare,1,0));
-  delay(500);
+  
+  for(int i = 0; i < 10; i++)
+    Weight += hx711.read();
+  Weight /= 10;
 }
 
 void PanelCallback(vp_channel event) 
@@ -28,12 +30,20 @@ void PanelCallback(vp_channel event)
   switch (event) 
   {
     case PanelConnected: // receive panel connected event
-      Panel.send(ApplicationName,"Pyama Scale"); 
+      Panel.send(ApplicationName,"Pajama Scale"); 
       Panel.send(Button_8, F("tare"));
+      Panel.send(DynamicDisplay, true);
       break;
 
     case Button_8:
       Tare = Weight;
+      break;
+
+    case DynamicDisplay:
+      float DWeight = ((Weight - Tare) * 0.000547); //- 0.55625
+    
+      Panel.sendf(Display_1,"%s g", _FString(DWeight, 4, 2));
+      break;
 
     default: break;
 
